@@ -18,7 +18,12 @@
 # 2. Write a restart function that will modify the `read_xml` input in the
 # parent frame.
 
-read_xml_safely <- function(x, ..., dump_frames=TRUE)
+read_xml_safely <- function(x, ..., dump_frames=TRUE) {
+  xx <- gsub("[^\u9\uA\uD\u20-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]", "", x, perl=TRUE)
+  xml2::read_xml(xx, ...)
+}
+
+read_xml_safely2 <- function(x, ..., dump_frames=TRUE)
 {
   # Handlers:
 
@@ -26,23 +31,20 @@ read_xml_safely <- function(x, ..., dump_frames=TRUE)
   error_handler <- function(er) {
     # Catch invalid characters in XML
     if(grepl("PCDATA invalid Char value", er$message)) {
-      msg <- paste0("invalid characters in XML:\n",
-                    er$message,
-                    "\n",
-                    "Removing")
+      msg <- paste0("Catching xml2 error: ",
+                    er$message)
       warning(msg)
       invokeRestart("drop_invalid_chars")
     } else {
       if(dump_frames)
         cat("Dumping frames\n")
-        dump.frames( paste0("read_xml_safely", chartr(Sys.time(), ": ", "-_")),
-                     to.file = TRUE)
-      return(er)
+        dump.frames("dump-read_xml_safely", to.file = TRUE)
+      stop(er)
     }
   }
 
   # Try to `read_xml` with restarts
-  for(i in 1:2) {
+  for(i in 1:5) {
     withRestarts(
       tryCatch(
         return( xml2::read_xml(x, ...) ),
@@ -53,6 +55,7 @@ read_xml_safely <- function(x, ..., dump_frames=TRUE)
 
       # Remove UTF-8 characters that are invalid in XML
       drop_invalid_chars = function() {
+        cat("Removing invalid characters\n")
         x <<- gsub("[^\u9\uA\uD\u20-\uD7FF\uE000-\uFFFD\u10000-\u10FFFF]", "", x, perl=TRUE)
       }
     )
