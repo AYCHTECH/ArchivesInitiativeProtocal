@@ -11,10 +11,11 @@ test_that("proper XML is parsed correctly", {
 } )
 
 
-test_that("RESTART: improper characters are translated", {
+test_that("RESTART: improper characters are removed", {
   expect_warning( res <- read_xml_safely(inputs[2]) )
-  expect_equal( as.character(res),
-                as.character(xml2::read_xml( gsub("\u0019", "", inputs[2]))) )
+  res2 <- xml2::read_xml( gsub("\u0019", "", inputs[2]) )
+  expect_equal( as.character(res), as.character(res2))
 } )
 
 
+rm(inputs)

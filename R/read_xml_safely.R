@@ -38,7 +38,7 @@ read_xml_safely <- function(x, ...)
   }
 
   # Try to `read_xml` with restarts
-  repeat {
+  for(i in 1:2) {
     withRestarts(
       tryCatch(
         return( xml2::read_xml(x, ...) ),
@@ -53,4 +53,5 @@ read_xml_safely <- function(x, ...)
       }
     )
   }
+
 }
