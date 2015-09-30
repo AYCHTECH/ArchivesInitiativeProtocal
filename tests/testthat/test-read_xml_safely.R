@@ -1,6 +1,5 @@
 context("Safe reading of XMLs")
 
-skip_on_cran()
 
 inputs <- c(
   "<p>Some paragraph with <b>text in bold</b> which should be OK</p>",
@@ -21,6 +20,7 @@ test_that("Characters illegal in XML are removed", {
 
 
 test_that("Illegal characters are removed when reading offending record in PBN", {
+  skip_on_cran()
   ch <- httr::GET("https://pbn.nauka.gov.pl/OAI-PMH?verb=GetRecord&identifier=242743&metadataPrefix=pbn")
   tt <- httr::content(ch, "text")
   expect_error( xml2::read_xml(tt) )
