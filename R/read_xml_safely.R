@@ -18,7 +18,7 @@
 # 2. Write a restart function that will modify the `read_xml` input in the
 # parent frame.
 
-read_xml_safely <- function(x, ..., dump_frames=FALSE)
+read_xml_safely <- function(x, ..., dump_frames=TRUE)
 {
   # Handlers:
 
@@ -34,6 +34,7 @@ read_xml_safely <- function(x, ..., dump_frames=FALSE)
       invokeRestart("drop_invalid_chars")
     } else {
       if(dump_frames)
+        cat("Dumping frames\n")
         dump.frames( paste0("read_xml_safely", chartr(Sys.time(), ": ", "-_")),
                      to.file = TRUE)
       return(er)
