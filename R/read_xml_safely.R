@@ -34,7 +34,7 @@ read_xml_safely <- function(x, ..., dump_frames=FALSE)
       invokeRestart("drop_invalid_chars")
     } else {
       if(dump_frames)
-        dump.frames( paste0("read_xml_safely", chatr(Sys.time(), ": ", "-_")),
+        dump.frames( paste0("read_xml_safely", chartr(Sys.time(), ": ", "-_")),
                      to.file = TRUE)
       return(er)
     }
