@@ -13,6 +13,22 @@ while_oai <- function(url, args, token, as, dumper=NULL, dumper_args=NULL, ...) 
       args2$metadataPrefix <- NULL
     }
 
+    # try GET with retries on some http errors
+    repeat {
+      tryCatch({
+        res <- GET(url, query = args2, ...)
+        stop_for_status(res)
+      },
+      http_504 = function(er) {
+        # gateway timeout
+        warning(er)
+        wtime <- getOption("oai.http_pause", 30)
+        cat(paste0("Waiting for ", wtime, " seconds (now is ", Sys.time(), ")\n"))
+        Sys.sleep(wtime)
+        cat("Resending request")
+      } )
+    }
+
     res <- GET(url, query = args2, ...)
     stop_for_status(res)
     tt <- content(res, "text")
