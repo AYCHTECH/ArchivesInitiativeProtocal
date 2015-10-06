@@ -37,7 +37,8 @@ oai_give <- function(x, as, type) {
                      type = type)
          },
          list = x,
-         raw = x
+         raw = x,
+         x
   )
 }
 

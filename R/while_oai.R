@@ -44,12 +44,20 @@ while_oai <- function(url, args, token, as, dumper=NULL, dumper_args=NULL, ...) 
         warning("malformed XML - keeping raw text even though `as` is ", dQuote(as))
         res <- tt
       } else {
-        xml_verb <- xml2::xml_children(xml2::xml_children(parsed)[[3]])   # TODO xpath here
-        res <- switch(args$verb,
-               ListRecords = get_data(xml_verb, as = as),
-               ListIdentifiers = parse_listid(xml_verb, as = as),
-               ListSets = get_sets(xml_verb, as = as)
-        )
+        if( as %in% c("xml", "xml_verb") ) {
+          res <- switch(as,
+                        xml=parsed,
+                        xml_verb = xml2::xml_children(xml2::xml_children(parsed)[[3]])   # TODO xpath here
+          )
+        } else {
+          xml_verb <- xml2::xml_children(xml2::xml_children(parsed)[[3]])   # TODO xpath here
+          res <- switch(args$verb,
+                        ListRecords = get_data(xml_verb, as = as),
+                        ListIdentifiers = parse_listid(xml_verb, as = as),
+                        ListSets = get_sets(xml_verb, as = as)
+          )
+        }
+
       }
     }
     # Collect values returned by `dumper` if they are not NULL
@@ -67,6 +75,8 @@ while_oai <- function(url, args, token, as, dumper=NULL, dumper_args=NULL, ...) 
       token <- tok$token
     }
   }
+
+  if( as %in% c("xml", "xml_verb") )  return(out)
 
   switch(args$verb,
          ListRecords = do.call("c", out),
