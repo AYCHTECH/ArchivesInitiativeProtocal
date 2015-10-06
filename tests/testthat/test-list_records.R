@@ -19,3 +19,25 @@ test_that("list_records fails well", {
                "The request includes illegal arguments")
   expect_error(list_records(url = 5), "One or more of your URLs")
 })
+
+
+
+
+test_that("for as='xml' list_records returns a list of xml_documents", {
+  skip_on_cran()
+  a <- list_records(from = '2015-06-01T00:00:00Z', until = '2015-06-01T00:10:00Z',
+                    as="xml")
+
+  expect_true( inherits(a, "list") )
+  expect_true( all( sapply(a, inherits, "xml_document") ) )
+})
+
+
+test_that("for as='xml_verb' list_records returns a list of nodesets", {
+  skip_on_cran()
+  a <- list_records(from = '2015-06-01T00:00:00Z', until = '2015-06-01T00:10:00Z',
+                    as="xml_verb")
+  expect_true( inherits(a, "list") )
+  expect_true( all( sapply(a, inherits, "xml_nodeset") ) )
+})
+
