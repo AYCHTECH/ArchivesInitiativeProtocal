@@ -13,34 +13,8 @@ while_oai <- function(url, args, token, as, dumper=NULL, dumper_args=NULL, ...) 
       args2$metadataPrefix <- NULL
     }
 
-    # try GET with retries on some http errors
-    retry_count <- 1
-    repeat {
-      if( retry_count >= getOption("oai.max_retries", 20) )
-        stop("maximal number of retries reached")
-      tryCatch({
-        res <- GET(url, query = args2, ...)
-        stop_for_status(res)
-      },
-      http_504 = function(er) {
-        # gateway timeout
-        warning(er)
-        wtime <- getOption("oai.http_pause", 30)
-        cat(paste0("Waiting for ", wtime, " seconds (now is ", Sys.time(), ")\n"))
-        Sys.sleep(wtime)
-        cat("Resending request")
-      },
-      error = function(er) {
-        # Print last resumptionToken and stop
-        cat("Last resumptionToken:", args2$resumptionToken, "\n")
-        stop(er)
-      }
-      )
-      retry_count <- retry_count + 1
-    }
+    res <- GET_with_retries(url=url, query=args2, ...)
 
-    res <- GET(url, query = args2, ...)
-    stop_for_status(res)
     tt <- content(res, "text")
 
     # try parsing
@@ -121,4 +95,37 @@ get_token <- function(x, verb, is_html=FALSE) {
       as.list(xml2::xml_attrs(node))
     ) )
   }
+}
+
+
+# try GET with retries on some http errors
+GET_with_retries <- function(url, query, ...,
+                             max_retries=getOption("oai.max_retries", 20),
+                             http_504_pause=getOption("oai.http_504_pause", 30) ) {
+  retry_count <- 1
+  repeat {
+    if( retry_count >= max_retries )
+      stop("maximal number of retries reached")
+    tryCatch({
+      res <- GET(url=url, query=query, ...)
+      stop_for_status(res)
+      return(res)
+    },
+    http_504 = function(er) {
+      # gateway timeout
+      warning(er)
+      cat(paste0("Waiting for ", http_504_pause, " seconds (now is ", Sys.time(), ")\n"))
+      Sys.sleep(http_504_pause)
+      cat("Resending request")
+    },
+    error = function(er) {
+      # Print last resumptionToken and stop
+      if(!is.null(query$resumptionToken))
+        cat("Last resumptionToken:", query$resumptionToken, "\n")
+      stop(er)
+    }
+    )
+    retry_count <- retry_count + 1
+  }
+
 }
