@@ -14,7 +14,9 @@ while_oai <- function(url, args, token, as, dumper=NULL, dumper_args=NULL, ...) 
     }
 
     # try GET with retries on some http errors
-    repeat {
+    retry_count <- 0
+    while( retry_count <= getOption("oai.max_retries", 20) ) {
+      retry_count <- retry_count + 1
       tryCatch({
         res <- GET(url, query = args2, ...)
         stop_for_status(res)
